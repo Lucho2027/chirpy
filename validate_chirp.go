@@ -27,43 +27,32 @@ func validateChirp(w http.ResponseWriter, r *http.Request) {
 	len := len(params.Body)
 	if len > 140 {
 		log.Printf("Chirp is too long")
-		respBody := returnVals{
-			Error: "Chirp is too long",
-		}
-		dat, err := json.Marshal(respBody)
-		if err != nil {
-			log.Printf("Error marshaling respBody inside  len constraint: %s", err)
-			return
-		}
-		w.WriteHeader(http.StatusBadRequest)
-
-		w.Write(dat)
+		respondWithError(w, http.StatusBadRequest, "Chirp is too long")
 		return
 	}
 	respBody := returnVals{
 		Valid: true,
 	}
-	dat, err := json.Marshal(respBody)
+	respondWithJson(w, http.StatusOK, respBody)
+
+}
+
+func respondWithJson(w http.ResponseWriter, code int, payload returnVals) {
+	resp, err := json.Marshal(payload)
 	if err != nil {
-		log.Printf("Error marshaling resp: %s", err)
-		respBody := returnVals{
-			Error: "Something went wrong",
-		}
-		dat, err := json.Marshal(respBody)
-		if err != nil {
-			log.Printf("Error marshaling respBody inside  len constraint: %s", err)
-			return
-		}
-		w.WriteHeader(http.StatusBadRequest)
-
-		w.Write(dat)
-
+		log.Printf("Error marshaling respBody inside  len constraint: %s", err)
 		return
-
 	}
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(resp)
 
-	w.WriteHeader(http.StatusOK)
+}
 
-	w.Write(dat)
+func respondWithError(w http.ResponseWriter, code int, msg string) {
+	respBody := returnVals{
+		Error: msg,
+	}
+	respondWithJson(w, code, respBody)
+	return
 }

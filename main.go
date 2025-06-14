@@ -22,14 +22,18 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))))
-    mux.HandleFunc("GET /api/healthz",  handleReadiness)
+  mux.HandleFunc("GET /api/healthz",  handleReadiness)
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
 	mux.HandleFunc("POST /admin/reset", apiCfg.handleReset)
 	mux.HandleFunc("POST /api/validate_chirp", validateChirp )	
+
+
 	srv := &http.Server{
 		Addr: ":" + port,
 		Handler: mux,
 	}
+
+	
 	log.Printf("Serving files from %s on port: %s\n", filepathRoot,  port)
 	log.Fatal(srv.ListenAndServe())
 }
