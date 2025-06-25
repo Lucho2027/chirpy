@@ -1,28 +1,54 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+
 	"sync/atomic"
+
+	"github.com/Lucho2027/chirpy/internal/database"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 type apiConfig struct {
 		fileserverHits atomic.Int32
+		database *database.Queries
+		platform string
 }
 
 
 func main() {
+    err := godotenv.Load()
+	if err != nil {
+		log.Printf("Error Loading env file %s\n", err)
+	}
+	dbURL := os.Getenv("DB_URL")
+	env := os.Getenv("PLATFORM")
+
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Printf("Problem initializing db: %s", err)
+	}
 	const port = "8080"
 	const filepathRoot="."
 
+
+	dbQueries := database.New(db)
+	
 	apiCfg := apiConfig{
 		fileserverHits: atomic.Int32{},
+		database: dbQueries,
+		platform: env,
 	}
 
 	mux := http.NewServeMux()
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))))
-  mux.HandleFunc("GET /api/healthz",  handleReadiness)
+  	mux.HandleFunc("GET /api/healthz",  handleReadiness)
+	mux.HandleFunc("POST /api/users", apiCfg.handleCreateUser )
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
 	mux.HandleFunc("POST /admin/reset", apiCfg.handleReset)
 	mux.HandleFunc("POST /api/validate_chirp", validateChirp )	
@@ -32,9 +58,8 @@ func main() {
 		Addr: ":" + port,
 		Handler: mux,
 	}
-
 	
-	log.Printf("Serving files from %s on port: %s\n", filepathRoot,  port)
+	log.Printf("Serving files on port: %s\n",  port)
 	log.Fatal(srv.ListenAndServe())
 }
 

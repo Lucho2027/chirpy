@@ -40,7 +40,7 @@ func validateChirp(w http.ResponseWriter, r *http.Request) {
 func respondWithJson(w http.ResponseWriter, code int, payload returnVals) {
 	resp, err := json.Marshal(payload)
 	if err != nil {
-		log.Printf("Error marshaling respBody inside  len constraint: %s", err)
+		log.Printf("Error marshaling respBody inside: %s", err)
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")
@@ -54,5 +54,5 @@ func respondWithError(w http.ResponseWriter, code int, msg string) {
 		Error: msg,
 	}
 	respondWithJson(w, code, respBody)
-	return
+
 }
