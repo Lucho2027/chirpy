@@ -4,4 +4,4 @@ VALUES (gen_random_uuid(), now(), now(), @email)
 RETURNING *;
 
 -- name: RemoveAllUsers :exec
-TRUNCATE TABLE users RESTART IDENTITY; 
+Delete from users;

@@ -14,26 +14,12 @@ type returnVals struct {
 	Error string `json:"error,omitempty"`
 }
 
-func validateChirp(w http.ResponseWriter, r *http.Request) {
-
-	decoder := json.NewDecoder(r.Body)
-	params := parameters{}
-	err := decoder.Decode(&params)
-	if err != nil {
-		log.Printf("Error decoding parameters: %s", err)
-		return
-	}
-
-	len := len(params.Body)
+func validateChirp(c string) bool {
+	len := len(c)
 	if len > 140 {
-		log.Printf("Chirp is too long")
-		respondWithError(w, http.StatusBadRequest, "Chirp is too long")
-		return
+		return false
 	}
-	respBody := returnVals{
-		Valid: true,
-	}
-	respondWithJson(w, http.StatusOK, respBody)
+    return true
 
 }
 
