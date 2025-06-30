@@ -90,3 +90,37 @@ func (cfg *apiConfig) handleGetAll(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(resp)
 }
+func (cfg *apiConfig) handleGetChirpById(w http.ResponseWriter, r *http.Request){
+	chirpId := r.PathValue("chirpID")
+	log.Printf("HERE IS THE PATH VALUE %s", chirpId)
+	parsedChirpId, err := uuid.Parse(chirpId)
+	if err != nil {
+		log.Printf("Error parsing uuid: %s", err)
+		respondWithError(w, http.StatusInternalServerError, "Error parsing ChirpId")
+		return
+	}
+	log.Printf("here is uuid obj %v", parsedChirpId)
+	cDb, err := cfg.database.GetChirpById(r.Context(), parsedChirpId)
+	if err != nil {
+		log.Printf("Error getting chirp from db %s", err)
+		respondWithError(w, http.StatusInternalServerError, "Error getting Chirp from db")
+		return
+	}
+	
+	respBody := Chirp{
+		ID: cDb.ID,
+		Message: cDb.Message,
+		UserID: cDb.UserID,
+		CreatedAt: cDb.CreatedAt.Time,
+		UpdatedAt: cDb.UpdatedAt.Time,
+	}
+	resp, err := json.Marshal(respBody)
+	if err != nil {
+		log.Printf("Error marshaling resp handleCreateChirp : %s", err)
+		respondWithError(w, 500, "Not able to marshal json create chirp")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(resp)
+}

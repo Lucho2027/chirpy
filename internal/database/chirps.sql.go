@@ -69,6 +69,23 @@ func (q *Queries) GetAllChirps(ctx context.Context) ([]Chirp, error) {
 	return items, nil
 }
 
+const getChirpById = `-- name: GetChirpById :one
+select id, message, user_id, created_at, updated_at from chirps where id = $1
+`
+
+func (q *Queries) GetChirpById(ctx context.Context, id uuid.UUID) (Chirp, error) {
+	row := q.db.QueryRowContext(ctx, getChirpById, id)
+	var i Chirp
+	err := row.Scan(
+		&i.ID,
+		&i.Message,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const removeAllChirps = `-- name: RemoveAllChirps :exec
 TRUNCATE TABLE chirps RESTART IDENTITY
 `

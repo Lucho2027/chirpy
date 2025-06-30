@@ -9,3 +9,6 @@ TRUNCATE TABLE chirps RESTART IDENTITY;
 -- name: GetAllChirps :many
 SELECT * FROM chirps
 ORDER By created_at ASC;
+
+-- name: GetChirpById :one
+select * from chirps where id = @id;
