@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lucho2027/chirpy/internal/auth"
+	"github.com/Lucho2027/chirpy/internal/database"
 	"github.com/google/uuid"
 )
 type User struct {
@@ -17,6 +19,7 @@ type User struct {
 
 type paramsUser struct {
 	Email string `json:"email"`
+	Password string `json:"password"`
 }
 
 
@@ -27,11 +30,22 @@ func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request ) 
 	if err != nil{
 		log.Printf("Error decoding parameters: %s", err)
 	}
+
+	hashedPassword, err := auth.HashPassword(params.Password)
+	if err != nil {
+		log.Printf("Error hashing password  %s:", err)
+		respondWithError(w, http.StatusInternalServerError, "Not able to create user")
+		return
+	}
 	
-	user, err := cfg.database.CreateUser(r.Context(), params.Email)
+	userParams := database.CreateUserParams{
+		Email:    params.Email,
+		Password: hashedPassword,
+	}
+	user, err := cfg.database.CreateUser(r.Context(), userParams)
 	if err != nil{
 		log.Printf("Error saving user on db  %s:", err)
-		respondWithError(w, 500, "Not able to create user")
+		respondWithError(w, http.StatusInternalServerError, "Not able to create user")
 		return
 	}	
 	respBody := User{
@@ -43,7 +57,7 @@ func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request ) 
 	resp, err := json.Marshal(respBody)
 	if err != nil {
 		log.Printf("Error marshaling resp handleCreateUser : %s", err)
-		respondWithError(w, 500, "Not able to marshal json create user")
+		respondWithError(w, http.StatusInternalServerError, "Not able to marshal json create user")
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")

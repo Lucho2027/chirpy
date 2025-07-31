@@ -16,11 +16,7 @@ type returnVals struct {
 
 func validateChirp(c string) bool {
 	len := len(c)
-	if len > 140 {
-		return false
-	}
-    return true
-
+	return len <= 140
 }
 
 func respondWithJson(w http.ResponseWriter, code int, payload returnVals) {
