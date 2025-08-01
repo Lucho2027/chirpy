@@ -6,9 +6,6 @@ import (
 	"net/http"
 )
 
-type parameters struct {
-	Body string `json:"body"`
-}
 type returnVals struct {
 	Valid bool   `json:"valid,omitempty"`
 	Error string `json:"error,omitempty"`
