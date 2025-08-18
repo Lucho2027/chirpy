@@ -92,7 +92,6 @@ func (cfg *ApiConfig) HandleGetAll(w http.ResponseWriter, r *http.Request) {
 }
 func (cfg *ApiConfig) HandleGetChirpById(w http.ResponseWriter, r *http.Request){
 	chirpId := r.PathValue("chirpID")
-	log.Printf("HERE IS THE PATH VALUE %s", chirpId)
 	parsedChirpId, err := uuid.Parse(chirpId)
 	if err != nil {
 		log.Printf("Error parsing uuid: %s", err)
