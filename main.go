@@ -22,7 +22,7 @@ func main() {
 	}
 	dbURL := os.Getenv("DB_URL")
 	env := os.Getenv("PLATFORM")
-
+	jwt_secret := os.Getenv("JWT_SECRET")
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Printf("Problem initializing db: %s", err)
@@ -30,7 +30,7 @@ func main() {
 	const port = "8080"
 
 	dbQueries := database.New(db)
-	apiCfg := api.NewApiConfig(dbQueries, env)
+	apiCfg := api.NewApiConfig(dbQueries, env, jwt_secret)
 
 	mux := http.NewServeMux()
 	api.RegisterRoutes(mux, apiCfg)	

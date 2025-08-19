@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lucho2027/chirpy/internal/auth"
 	"github.com/Lucho2027/chirpy/internal/database"
 	"github.com/google/uuid"
 )
@@ -20,7 +21,6 @@ type Chirp struct {
 
 type paramsChirp struct {
 	Message string    `json:"body"`
-	UserID  uuid.UUID `json:"user_id"`
 }
 
 func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) {
@@ -30,17 +30,30 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		log.Printf("Error decoding parameters handleCreateChirp : %s", err)
 	}
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		log.Printf("Error saving chirp - token invalid %s", err)
+		RespondWithError(w, http.StatusUnauthorized, "Not able to create chirps")
+		return
+	}
+	userID, err := auth.ValidateJWT(token, cfg.JWT_Secret)
+	if err != nil {
+		log.Printf("Error saving chirp - token invalid %s", err)
+		RespondWithError(w, http.StatusUnauthorized, " Not able to create chirps")
+		return
+	}
+
 	if !ValidateChirp(params.Message) {
 		RespondWithError(w, http.StatusBadRequest, "Chirp is too long!")
 		return
 	}
 	chirp, err := cfg.Database.CreateChirp(r.Context(), database.CreateChirpParams{
 		Message: params.Message,
-		UserID:  params.UserID,
+		UserID:  userID,
 	})
 	if err != nil {
-		log.Printf("Error saving msg on db  %s:", err)
-		RespondWithError(w, http.StatusInternalServerError, "Not able to create user")
+		log.Printf("Error saving chirp on db  %s:", err)
+		RespondWithError(w, http.StatusInternalServerError, "Not able to create chirps")
 		return
 	}
 	respBody := Chirp{
