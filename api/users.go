@@ -16,12 +16,12 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Email string `json:"email"`
 	Token string `json:"token"`
+	RefresToken string `json:"refresh_token"`
 }
 
 type paramsUser struct {
 	Email string `json:"email"`
 	Password string `json:"password"`
-	ExpiresInSeconds *int `json:"expires_in_seconds,omitempty"`
 }
 
 
@@ -50,11 +50,12 @@ func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request ) 
 		RespondWithError(w, http.StatusInternalServerError, "Not able to create user")
 		return
 	}	
+	
 	respBody := User{
 		ID: user.ID,
 		CreatedAt: user.CreatedAt.Time,
 		UpdatedAt: user.UpdatedAt.Time,
-		Email: user.Email,
+		Email: user.Email, 
 	}
 	resp, err := json.Marshal(respBody)
 	if err != nil {

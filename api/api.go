@@ -22,6 +22,9 @@ func RegisterRoutes(mux *http.ServeMux, apiCfg *ApiConfig ){
 	mux.HandleFunc("POST /api/chirps", apiCfg.HandleCreateChirp)
 	mux.HandleFunc("GET /api/chirps", apiCfg.HandleGetAll)
     mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.HandleGetChirpById)
+    //Refresh Tokens
+	mux.HandleFunc("POST /api/refresh", apiCfg.HandleRefreshToken)
+
 }
 
 
