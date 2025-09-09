@@ -16,7 +16,7 @@ func ValidateChirp(c string) bool {
 	return len <= 140
 }
 
-func RespondWithJson(w http.ResponseWriter, code int, payload returnVals) {
+func RespondWithJson(w http.ResponseWriter, code int, payload any) {
 	resp, err := json.Marshal(payload)
 	if err != nil {
 		log.Printf("Error marshaling respBody inside: %s", err)
