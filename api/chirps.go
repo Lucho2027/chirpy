@@ -65,13 +65,8 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 		CreatedAt: chirp.CreatedAt.Time,
 		UpdatedAt: chirp.UpdatedAt.Time,
 	}
-	resp, err := json.Marshal(respBody)
-	if err != nil {
-		log.Printf("Error marshaling resp handleCreateChirp : %s", err)
-		RespondWithError(w, 500, "Not able to marshal json create chirp")
-		return
-	}
-	RespondWithJson(w, http.StatusCreated, resp)
+	
+	RespondWithJson(w, http.StatusCreated, respBody)
 }
 
 func (cfg *ApiConfig) HandleGetAll(w http.ResponseWriter, r *http.Request) {
@@ -93,13 +88,8 @@ func (cfg *ApiConfig) HandleGetAll(w http.ResponseWriter, r *http.Request) {
 			UpdatedAt: c.UpdatedAt.Time,
 		})
 	}
-	resp, err := json.Marshal(respBody)
-	if err != nil {
-		log.Printf("Error marshaling resp handleGetAllChirps : %s", err)
-		RespondWithError(w, 500, "Not able to marshal json get chirp")
-		return
-	}
-	RespondWithJson(w, http.StatusOK, resp)
+	
+	RespondWithJson(w, http.StatusOK, respBody)
 }
 func (cfg *ApiConfig) HandleGetChirpById(w http.ResponseWriter, r *http.Request) {
 	chirpId := r.PathValue("chirpID")
@@ -124,11 +114,5 @@ func (cfg *ApiConfig) HandleGetChirpById(w http.ResponseWriter, r *http.Request)
 		CreatedAt: cDb.CreatedAt.Time,
 		UpdatedAt: cDb.UpdatedAt.Time,
 	}
-	resp, err := json.Marshal(respBody)
-	if err != nil {
-		log.Printf("Error marshaling resp handleCreateChirp : %s", err)
-		RespondWithError(w, 500, "Not able to marshal json create chirp")
-		return
-	}
-	RespondWithJson(w, http.StatusOK, resp)
+	RespondWithJson(w, http.StatusOK, respBody)
 }

@@ -57,12 +57,7 @@ func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: user.UpdatedAt.Time,
 		Email:     user.Email,
 	}
-	resp, err := json.Marshal(respBody)
-	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, "Not able to marshal json create user")
-		return
-	}
-	RespondWithJson(w, http.StatusCreated, resp)
+	RespondWithJson(w, http.StatusCreated, respBody)
 }
 
 func (cfg *ApiConfig) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -89,13 +84,21 @@ func (cfg *ApiConfig) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusInternalServerError, "Not able to update user")
 		return
 	}
-	if err := cfg.Database.UpdateUser(r.Context(), database.UpdateUserParams{
+	user ,err := cfg.Database.UpdateUser(r.Context(), database.UpdateUserParams{
 		Email:    params.Email,
 		Password: hashedPassword,
 		ID:       userID,
-	}); err != nil {
+	})
+	if err != nil {
 		RespondWithError(w, http.StatusInternalServerError, "Not able to update user")
 		return
 	}
-	RespondWithJson(w, http.StatusOK, "")
+	respBody := User{
+		ID: user.ID,
+		CreatedAt: user.CreatedAt.Time,
+		UpdatedAt: user.UpdatedAt.Time,
+		Email: params.Email,
+	}
+	
+	RespondWithJson(w, http.StatusOK, respBody)
 }

@@ -20,6 +20,8 @@ func RespondWithJson(w http.ResponseWriter, code int, payload any) {
 	resp, err := json.Marshal(payload)
 	if err != nil {
 		log.Printf("Error marshaling respBody inside: %s", err)
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")
@@ -33,5 +35,4 @@ func RespondWithError(w http.ResponseWriter, code int, msg string) {
 		Error: msg,
 	}
 	RespondWithJson(w, code, respBody)
-
 }
