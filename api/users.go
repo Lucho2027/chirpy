@@ -10,26 +10,26 @@ import (
 	"github.com/Lucho2027/chirpy/internal/database"
 	"github.com/google/uuid"
 )
+
 type User struct {
-	ID uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Email string `json:"email"`
-	Token string `json:"token"`
-	RefresToken string `json:"refresh_token"`
+	ID          uuid.UUID `json:"id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	Email       string    `json:"email"`
+	Token       string    `json:"token"`
+	RefresToken string    `json:"refresh_token"`
 }
 
 type paramsUser struct {
-	Email string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-
-func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request ) {
-	decoder := json.NewDecoder(r.Body);
-	params:= paramsUser{}
+func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	params := paramsUser{}
 	err := decoder.Decode(&params)
-	if err != nil{
+	if err != nil {
 		log.Printf("Error decoding parameters: %s", err)
 	}
 
@@ -39,32 +39,63 @@ func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request ) 
 		RespondWithError(w, http.StatusInternalServerError, "Not able to create user")
 		return
 	}
-	
+
 	userParams := database.CreateUserParams{
 		Email:    params.Email,
 		Password: hashedPassword,
 	}
 	user, err := cfg.Database.CreateUser(r.Context(), userParams)
-	if err != nil{
+	if err != nil {
 		log.Printf("Error saving user on db  %s:", err)
 		RespondWithError(w, http.StatusInternalServerError, "Not able to create user")
 		return
-	}	
-	
+	}
+
 	respBody := User{
-		ID: user.ID,
+		ID:        user.ID,
 		CreatedAt: user.CreatedAt.Time,
 		UpdatedAt: user.UpdatedAt.Time,
-		Email: user.Email, 
+		Email:     user.Email,
 	}
 	resp, err := json.Marshal(respBody)
 	if err != nil {
-		log.Printf("Error marshaling resp handleCreateUser : %s", err)
 		RespondWithError(w, http.StatusInternalServerError, "Not able to marshal json create user")
 		return
 	}
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(resp)
-	 
+	RespondWithJson(w, http.StatusCreated, resp)
+}
+
+func (cfg *ApiConfig) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	params := paramsUser{}
+	err := decoder.Decode(&params)
+	if err != nil {
+		RespondWithError(w, http.StatusUnauthorized, "Not able to update user")
+		return
+	}
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		RespondWithError(w, http.StatusUnauthorized, "Not able to update users")
+		return
+	}
+	userID, err := auth.ValidateJWT(token, cfg.JWT_Secret)
+	if err != nil {
+		RespondWithError(w, http.StatusUnauthorized, "Not able to update ")
+		return
+	}
+	hashedPassword, err := auth.HashPassword(params.Password)
+	if err != nil {
+		log.Printf("Error hashing password  %s:", err)
+		RespondWithError(w, http.StatusInternalServerError, "Not able to update user")
+		return
+	}
+	if err := cfg.Database.UpdateUser(r.Context(), database.UpdateUserParams{
+		Email:    params.Email,
+		Password: hashedPassword,
+		ID:       userID,
+	}); err != nil {
+		RespondWithError(w, http.StatusInternalServerError, "Not able to update user")
+		return
+	}
+	RespondWithJson(w, http.StatusOK, "")
 }

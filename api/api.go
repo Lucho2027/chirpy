@@ -18,10 +18,11 @@ func RegisterRoutes(mux *http.ServeMux, apiCfg *ApiConfig ){
 	// Users
 	mux.HandleFunc("POST /api/users", apiCfg.HandleCreateUser )
 	mux.HandleFunc("POST /api/login", apiCfg.HandleLogin)
+	mux.HandleFunc("PUT /api/users", apiCfg.HandleUpdateUser)
 	// Chirps
 	mux.HandleFunc("POST /api/chirps", apiCfg.HandleCreateChirp)
 	mux.HandleFunc("GET /api/chirps", apiCfg.HandleGetAll)
-    mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.HandleGetChirpById)
+  mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.HandleGetChirpById)
     //Refresh Tokens
 	mux.HandleFunc("POST /api/refresh", apiCfg.RefreshToken)
 	mux.HandleFunc("POST /api/revoke", apiCfg.RevokeToken)

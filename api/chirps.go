@@ -20,7 +20,7 @@ type Chirp struct {
 }
 
 type paramsChirp struct {
-	Message string    `json:"body"`
+	Message string `json:"body"`
 }
 
 func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) {
@@ -29,6 +29,8 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	err := decoder.Decode(&params)
 	if err != nil {
 		log.Printf("Error decoding parameters handleCreateChirp : %s", err)
+		RespondWithError(w, http.StatusInternalServerError, "Not able to create chirps")
+		return
 	}
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
@@ -39,7 +41,7 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	userID, err := auth.ValidateJWT(token, cfg.JWT_Secret)
 	if err != nil {
 		log.Printf("Error saving chirp - token invalid %s", err)
-		RespondWithError(w, http.StatusUnauthorized, " Not able to create chirps")
+		RespondWithError(w, http.StatusUnauthorized, "Not able to create chirps")
 		return
 	}
 
@@ -69,9 +71,7 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 		RespondWithError(w, 500, "Not able to marshal json create chirp")
 		return
 	}
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(resp)
+	RespondWithJson(w, http.StatusCreated, resp)
 }
 
 func (cfg *ApiConfig) HandleGetAll(w http.ResponseWriter, r *http.Request) {
@@ -99,11 +99,9 @@ func (cfg *ApiConfig) HandleGetAll(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, 500, "Not able to marshal json get chirp")
 		return
 	}
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	RespondWithJson(w, http.StatusOK, resp)
 }
-func (cfg *ApiConfig) HandleGetChirpById(w http.ResponseWriter, r *http.Request){
+func (cfg *ApiConfig) HandleGetChirpById(w http.ResponseWriter, r *http.Request) {
 	chirpId := r.PathValue("chirpID")
 	parsedChirpId, err := uuid.Parse(chirpId)
 	if err != nil {
@@ -118,11 +116,11 @@ func (cfg *ApiConfig) HandleGetChirpById(w http.ResponseWriter, r *http.Request)
 		RespondWithError(w, http.StatusInternalServerError, "Error getting Chirp from db")
 		return
 	}
-	
+
 	respBody := Chirp{
-		ID: cDb.ID,
-		Message: cDb.Message,
-		UserID: cDb.UserID,
+		ID:        cDb.ID,
+		Message:   cDb.Message,
+		UserID:    cDb.UserID,
 		CreatedAt: cDb.CreatedAt.Time,
 		UpdatedAt: cDb.UpdatedAt.Time,
 	}
@@ -132,7 +130,5 @@ func (cfg *ApiConfig) HandleGetChirpById(w http.ResponseWriter, r *http.Request)
 		RespondWithError(w, 500, "Not able to marshal json create chirp")
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	RespondWithJson(w, http.StatusOK, resp)
 }
