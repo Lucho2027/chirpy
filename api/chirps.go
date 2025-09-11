@@ -99,11 +99,10 @@ func (cfg *ApiConfig) HandleGetChirpById(w http.ResponseWriter, r *http.Request)
 		RespondWithError(w, http.StatusInternalServerError, "Error parsing ChirpId")
 		return
 	}
-	log.Printf("here is uuid obj %v", parsedChirpId)
 	cDb, err := cfg.Database.GetChirpById(r.Context(), parsedChirpId)
 	if err != nil {
 		log.Printf("Error getting chirp from db %s", err)
-		RespondWithError(w, http.StatusInternalServerError, "Error getting Chirp from db")
+		RespondWithError(w, http.StatusNotFound, "Error getting Chirp from db")
 		return
 	}
 
@@ -115,4 +114,40 @@ func (cfg *ApiConfig) HandleGetChirpById(w http.ResponseWriter, r *http.Request)
 		UpdatedAt: cDb.UpdatedAt.Time,
 	}
 	RespondWithJson(w, http.StatusOK, respBody)
+}
+func (cfg *ApiConfig) HandleDeleteChirpById (w http.ResponseWriter, r *http.Request){
+	chirpId := r.PathValue("chirpID")
+	parsedChirpId, err := uuid.Parse(chirpId)
+	if err != nil {
+		log.Printf("Error parsing uuid: %s", err)
+		RespondWithError(w, http.StatusInternalServerError, "Error parsing ChirpId")
+		return
+	}
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		RespondWithError(w, http.StatusUnauthorized, "Not authorized")
+		return
+	}
+	userID, err := auth.ValidateJWT(token, cfg.JWT_Secret)
+	if err != nil {
+		RespondWithError(w, http.StatusUnauthorized, "Not authorized")
+		return
+	}
+	chirpToDel, err := cfg.Database.GetChirpById(r.Context(), parsedChirpId)
+	if err != nil {
+		RespondWithError(w, http.StatusNotFound, "Error getting Chirp from db")
+		return
+	}
+	if chirpToDel.UserID != userID {
+		RespondWithError(w, http.StatusForbidden, "Not authorized")
+		return
+	}
+	if err := cfg.Database.DeleteChirpById(r.Context(), database.DeleteChirpByIdParams{
+		ChirpID: parsedChirpId,
+		UserID: userID,
+	}); err != nil {
+		RespondWithError(w, http.StatusNotFound, "Not able to delete chirp")
+		return
+	}
+	RespondWithJson(w, http.StatusNoContent, "")
 }
