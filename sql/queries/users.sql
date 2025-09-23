@@ -14,3 +14,8 @@ where email = @email;
 update users set email = @email, hashed_password = @password, updated_at = now()
 where id = @id
 RETURNING *;
+
+-- name: UpgradeUser :one
+update users set is_chirpy_red = @is_chirpy_red
+where id = @id
+RETURNING id;
