@@ -10,6 +10,7 @@ import (
 	"github.com/Lucho2027/chirpy/internal/database"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/redis/go-redis/v9"
 )
 
 
@@ -30,7 +31,12 @@ func main() {
 	const port = "8080"
 
 	dbQueries := database.New(db)
-	apiCfg := api.NewApiConfig(dbQueries, env, jwt_secret)
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+		Password: "",
+		DB: 0,
+	})
+	apiCfg := api.NewApiConfig(dbQueries, env, jwt_secret, rdb)
 
 	mux := http.NewServeMux()
 	api.RegisterRoutes(mux, apiCfg)	

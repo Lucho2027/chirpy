@@ -31,6 +31,7 @@ func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&params)
 	if err != nil {
 		log.Printf("Error decoding parameters: %s", err)
+		return
 	}
 
 	hashedPassword, err := auth.HashPassword(params.Password)
