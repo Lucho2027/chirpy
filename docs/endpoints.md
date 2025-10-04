@@ -54,6 +54,19 @@ Content-Type: application/json
 GET /api/chirps
 ```
 
+Query Parameters:
+
+- `author_id` (optional): UUID of the author to filter chirps by
+- `sort` (optional): Sort chirps by creation date
+  - `asc`: Ascending order (oldest first)
+  - `desc`: Descending order (newest first)
+
+Example:
+
+```http
+GET /api/chirps?author_id=123e4567-e89b-12d3-a456-426614174000&sort=desc
+```
+
 ### Get Chirp by ID
 
 ```http
