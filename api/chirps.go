@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -70,8 +71,24 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 }
 
 func (cfg *ApiConfig) HandleGetAll(w http.ResponseWriter, r *http.Request) {
+	authorID := r.URL.Query().Get("author_id")
+	var (
+		chirps []database.Chirp
+		err    error
+	)
 
-	chirps, err := cfg.Database.GetAllChirps(r.Context())
+	if authorID == "" {
+		chirps, err = cfg.Database.GetAllChirps(r.Context())
+	} else {
+		parsedAuthorID, parseErr := uuid.Parse(authorID)
+		if parseErr != nil {
+			log.Printf("Error parsing uuid: %s", err)
+			RespondWithError(w, http.StatusInternalServerError, "Error parsing AuthorId")
+			return
+		}
+		chirps, err = cfg.Database.GetAllChirpsByAuthor(r.Context(), parsedAuthorID)
+	}
+
 	if err != nil {
 		log.Printf("Error getting all chirps: %s", err)
 		RespondWithError(w, http.StatusInternalServerError, "Not able to retrieve chirps")

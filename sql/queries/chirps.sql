@@ -15,3 +15,8 @@ select * from chirps where id = @id;
 
 -- name: DeleteChirpById :exec
 Delete from chirps where id = @chirp_id and user_id = @user_id;
+
+-- name: GetAllChirpsByAuthor :many
+SELECT * FROM chirps
+WHERE user_id = @user_id
+ORDER BY created_at ASC;
