@@ -116,84 +116,64 @@ func TestValidateJWT(t *testing.T) {
 		})
 	}
 }
-
-func TestGetBearerToken(t *testing.T) {
+func TestGetAuthFromHeader(t *testing.T) {
 	tests := []struct {
 		name        string
-		setupHeader func() http.Header
-		wantErr     bool
+		authHeader  string
+		authPrefix  string
 		wantToken   string
+		expectError bool
 	}{
 		{
-			name: "Bearer is present",
-			setupHeader: func() http.Header {
-				h := http.Header{}
-				h.Set("Authorization", "Bearer this-be-the-token")
-				return h
-			},
-			wantErr:   false,
-			wantToken: "this-be-the-token",
+			name:       "Valid Bearer Token",
+			authHeader: "Bearer sometoken123",
+			authPrefix: "Bearer",
+			wantToken:  "sometoken123",
 		},
 		{
-			name: "Missing Auth Token",
-			setupHeader: func() http.Header {
-				h := http.Header{}
-				h.Set("", "")
-				return h
-			},
-			wantErr:   true,
-			wantToken: "",
+			name:       "Valid API Key",
+			authHeader: "ApiKey myapikey",
+			authPrefix: "ApiKey",
+			wantToken:  "myapikey",
 		},
 		{
-			name: "Empty Auth Header",
-			setupHeader: func() http.Header {
-				h := http.Header{}
-				h.Set("Authorization", "")
-				return h
-			},
-			wantErr:   true,
-			wantToken: "",
-		}, {
-			name: "Auth W/o Bearer prefix",
-			setupHeader: func() http.Header {
-				h := http.Header{}
-				h.Set("Authorization", "this-be-the-token")
-				return h
-			},
-			wantErr:   true,
-			wantToken: "",
-		}, {
-			name: "Auth w/prefix not token",
-			setupHeader: func() http.Header {
-				h := http.Header{}
-				h.Set("Authorization", "Bearer ")
-				return h
-			},
-			wantErr:   true,
-			wantToken: "",
+			name:        "Missing Authorization Header",
+			authHeader:  "",
+			authPrefix:  "Bearer",
+			expectError: true,
 		},
 		{
-			name: "different  auth",
-			setupHeader: func() http.Header {
-				h := http.Header{}
-				h.Set("Authorization", "Basic this-be-the-token")
-				return h
-			},
-			wantErr:   true,
-			wantToken: "",
+			name:        "Wrong Prefix",
+			authHeader:  "Token sometoken",
+			authPrefix:  "Bearer",
+			expectError: true,
+		},
+		{
+			name:        "Empty Token",
+			authHeader:  "Bearer ",
+			authPrefix:  "Bearer",
+			expectError: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			headers := tt.setupHeader()
-			token, err := GetBearerToken(headers)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetBearerToken() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			headers := http.Header{}
+			if tt.authHeader != "" {
+				headers.Set("Authorization", tt.authHeader)
 			}
-			if !tt.wantErr && token != tt.wantToken {
-				t.Errorf("GetBearerToken() token = %v, want %v", token, tt.wantToken)
+			token, err := GetAuthFromHeader(headers, tt.authPrefix)
+			if tt.expectError {
+				if err == nil {
+					t.Errorf("expected error, got none")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+				if token != tt.wantToken {
+					t.Errorf("expected token %q, got %q", tt.wantToken, token)
+				}
 			}
 		})
 	}

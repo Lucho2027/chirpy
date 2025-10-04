@@ -32,7 +32,7 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 		RespondWithError(w, http.StatusInternalServerError, "Not able to create chirps")
 		return
 	}
-	token, err := auth.GetBearerToken(r.Header)
+	token, err := auth.GetAuthFromHeader(r.Header, "Bearer")
 	if err != nil {
 		log.Printf("Error saving chirp - token invalid %s", err)
 		RespondWithError(w, http.StatusUnauthorized, "Not able to create chirps")
@@ -65,7 +65,7 @@ func (cfg *ApiConfig) HandleCreateChirp(w http.ResponseWriter, r *http.Request) 
 		CreatedAt: chirp.CreatedAt.Time,
 		UpdatedAt: chirp.UpdatedAt.Time,
 	}
-	
+
 	RespondWithJson(w, http.StatusCreated, respBody)
 }
 
@@ -88,7 +88,7 @@ func (cfg *ApiConfig) HandleGetAll(w http.ResponseWriter, r *http.Request) {
 			UpdatedAt: c.UpdatedAt.Time,
 		})
 	}
-	
+
 	RespondWithJson(w, http.StatusOK, respBody)
 }
 func (cfg *ApiConfig) HandleGetChirpById(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +115,7 @@ func (cfg *ApiConfig) HandleGetChirpById(w http.ResponseWriter, r *http.Request)
 	}
 	RespondWithJson(w, http.StatusOK, respBody)
 }
-func (cfg *ApiConfig) HandleDeleteChirpById (w http.ResponseWriter, r *http.Request){
+func (cfg *ApiConfig) HandleDeleteChirpById(w http.ResponseWriter, r *http.Request) {
 	chirpId := r.PathValue("chirpID")
 	parsedChirpId, err := uuid.Parse(chirpId)
 	if err != nil {
@@ -123,7 +123,7 @@ func (cfg *ApiConfig) HandleDeleteChirpById (w http.ResponseWriter, r *http.Requ
 		RespondWithError(w, http.StatusInternalServerError, "Error parsing ChirpId")
 		return
 	}
-	token, err := auth.GetBearerToken(r.Header)
+	token, err := auth.GetAuthFromHeader(r.Header, "Bearer")
 	if err != nil {
 		RespondWithError(w, http.StatusUnauthorized, "Not authorized")
 		return
@@ -144,7 +144,7 @@ func (cfg *ApiConfig) HandleDeleteChirpById (w http.ResponseWriter, r *http.Requ
 	}
 	if err := cfg.Database.DeleteChirpById(r.Context(), database.DeleteChirpByIdParams{
 		ChirpID: parsedChirpId,
-		UserID: userID,
+		UserID:  userID,
 	}); err != nil {
 		RespondWithError(w, http.StatusNotFound, "Not able to delete chirp")
 		return

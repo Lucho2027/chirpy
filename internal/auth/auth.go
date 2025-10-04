@@ -29,29 +29,31 @@ func CheckPasswordHash(password, hash string) error {
 	return nil
 }
 
-func GetBearerToken(headers http.Header)(string, error){
-
-	bearerToken := headers.Get("Authorization")
-	if(bearerToken == ""){
-			return "", fmt.Errorf("authorization header is missing")
-	}
-	if !strings.HasPrefix(bearerToken, "Bearer "){
-		return "", fmt.Errorf("authorization header must start with 'Bearer '")
-	}
-	token := strings.TrimPrefix(bearerToken, "Bearer ")
-	if token == "" {
-		return "", fmt.Errorf("bearer token is empty")
-	}
-
-	return token, nil
-}
-
 func MakeRefreshToken() (string, error) {
 	key := make([]byte, 32)
-	 _, err := rand.Read(key)
-	if err != nil{
+	_, err := rand.Read(key)
+	if err != nil {
 		return "", fmt.Errorf("refresh token - problem creating")
 	}
 	refreshed := hex.EncodeToString(key)
 	return refreshed, nil
+}
+
+func GetAuthFromHeader(headers http.Header, authPrefix string) (string, error) {
+	infoToGet := headers.Get("Authorization")
+	if infoToGet == "" {
+		return "", fmt.Errorf("authorization header is missing")
+	}
+	prefixToLookFor := authPrefix + " "
+	if !strings.HasPrefix(infoToGet, prefixToLookFor) {
+		fmt.Printf("authorization header must start with %s", prefixToLookFor)
+		return "", fmt.Errorf("authorization header must start with %s", prefixToLookFor)
+	}
+	token := strings.TrimPrefix(infoToGet, prefixToLookFor)
+	if token == "" {
+		return "", fmt.Errorf("get value from header returned value is empty")
+	}
+
+	return token, nil
+
 }

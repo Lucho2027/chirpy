@@ -14,14 +14,15 @@ type ApiConfig struct {
 		Platform string
 		JWT_Secret string
 		Redis *redis.Client
-		
+		Polka_Key string
 }
 
-func NewApiConfig(db *database.Queries, platform string, secret string, redisClient *redis.Client) *ApiConfig{
+func NewApiConfig(db *database.Queries, platform string, secret string, redisClient *redis.Client, polka string) *ApiConfig{
 	return &ApiConfig{
 		Database: db ,
 		Platform: platform,
 		JWT_Secret: secret,
 		Redis: redisClient,
+		Polka_Key: polka,
 	}
 }

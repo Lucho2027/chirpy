@@ -24,10 +24,12 @@ func main() {
 	dbURL := os.Getenv("DB_URL")
 	env := os.Getenv("PLATFORM")
 	jwt_secret := os.Getenv("JWT_SECRET")
+	polka_key := os.Getenv("POLKA_KEY")
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Printf("Problem initializing db: %s", err)
 	}
+	
 	const port = "8080"
 
 	dbQueries := database.New(db)
@@ -36,7 +38,7 @@ func main() {
 		Password: "",
 		DB: 0,
 	})
-	apiCfg := api.NewApiConfig(dbQueries, env, jwt_secret, rdb)
+	apiCfg := api.NewApiConfig(dbQueries, env, jwt_secret, rdb, polka_key)
 
 	mux := http.NewServeMux()
 	api.RegisterRoutes(mux, apiCfg)	

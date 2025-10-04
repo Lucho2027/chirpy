@@ -71,7 +71,7 @@ func (cfg *ApiConfig) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusUnauthorized, "Not able to update user")
 		return
 	}
-	token, err := auth.GetBearerToken(r.Header)
+	token, err := auth.GetAuthFromHeader(r.Header, "Bearer")
 	if err != nil {
 		RespondWithError(w, http.StatusUnauthorized, "Not able to update users")
 		return
