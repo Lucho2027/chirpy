@@ -7,7 +7,7 @@ RETURNING *;
 Delete from users;
 
 -- name: GetByEmail :one
-Select email, hashed_password, id, created_at, updated_at from users
+Select email, hashed_password, id, created_at, updated_at, is_chirpy_red from users
 where email = @email;
 
 -- name: UpdateUser :one

@@ -18,6 +18,7 @@ type User struct {
 	Email       string    `json:"email"`
 	Token       string    `json:"token"`
 	RefresToken string    `json:"refresh_token"`
+	IsChirpyRed bool      `json:"is_chirpy_red"`
 }
 
 type paramsUser struct {
@@ -53,10 +54,11 @@ func (cfg *ApiConfig) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respBody := User{
-		ID:        user.ID,
-		CreatedAt: user.CreatedAt.Time,
-		UpdatedAt: user.UpdatedAt.Time,
-		Email:     user.Email,
+		ID:          user.ID,
+		CreatedAt:   user.CreatedAt.Time,
+		UpdatedAt:   user.UpdatedAt.Time,
+		Email:       user.Email,
+		IsChirpyRed: user.IsChirpyRed,
 	}
 	RespondWithJson(w, http.StatusCreated, respBody)
 }
@@ -85,7 +87,7 @@ func (cfg *ApiConfig) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusInternalServerError, "Not able to update user")
 		return
 	}
-	user ,err := cfg.Database.UpdateUser(r.Context(), database.UpdateUserParams{
+	user, err := cfg.Database.UpdateUser(r.Context(), database.UpdateUserParams{
 		Email:    params.Email,
 		Password: hashedPassword,
 		ID:       userID,
@@ -95,11 +97,12 @@ func (cfg *ApiConfig) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respBody := User{
-		ID: user.ID,
-		CreatedAt: user.CreatedAt.Time,
-		UpdatedAt: user.UpdatedAt.Time,
-		Email: params.Email,
+		ID:          user.ID,
+		CreatedAt:   user.CreatedAt.Time,
+		UpdatedAt:   user.UpdatedAt.Time,
+		Email:       params.Email,
+		IsChirpyRed: user.IsChirpyRed,
 	}
-	
+
 	RespondWithJson(w, http.StatusOK, respBody)
 }
