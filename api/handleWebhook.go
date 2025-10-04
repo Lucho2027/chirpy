@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lucho2027/chirpy/internal/auth"
 	"github.com/Lucho2027/chirpy/internal/database"
 	"github.com/google/uuid"
 )
@@ -35,7 +36,15 @@ func (cfg *ApiConfig) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 		RespondWithJson(w, http.StatusNoContent, "")
 		return
 	}
-
+	apiInHeader, err := auth.GetAuthFromHeader(r.Header, "ApiKey")
+	if err != nil {
+		RespondWithError(w, http.StatusUnauthorized, "Not authorized")
+		return
+	}
+	if apiInHeader != cfg.Polka_Key {
+		RespondWithError(w, http.StatusUnauthorized, "Not authorized")
+		return
+	}
 	idempotencyKey := params.Event + ":" + params.Data.UserID.String()
 	if cfg.HasRedis() {
 		if _, err := cfg.Redis.Get(r.Context(), idempotencyKey).Result(); err == nil {

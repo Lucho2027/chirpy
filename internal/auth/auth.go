@@ -53,7 +53,6 @@ func GetAuthFromHeader(headers http.Header, authPrefix string) (string, error) {
 	if token == "" {
 		return "", fmt.Errorf("get value from header returned value is empty")
 	}
-
 	return token, nil
 
 }
