@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/Lucho2027/chirpy/internal/auth"
@@ -103,6 +104,14 @@ func (cfg *ApiConfig) HandleGetAll(w http.ResponseWriter, r *http.Request) {
 			CreatedAt: c.CreatedAt.Time,
 			UpdatedAt: c.UpdatedAt.Time,
 		})
+	}
+	querySort := r.URL.Query().Get("sort")
+
+	switch querySort {
+	case "asc":
+		sort.Slice(respBody, func(i, j int) bool { return respBody[i].CreatedAt.Before(respBody[j].CreatedAt) })
+	case "desc":
+		sort.Slice(respBody, func(i, j int) bool { return respBody[i].CreatedAt.After(respBody[j].CreatedAt) })
 	}
 
 	RespondWithJson(w, http.StatusOK, respBody)
